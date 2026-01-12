@@ -1,0 +1,65 @@
+---
+title: "new db"
+output: html_document
+date: "2025-11-04"
+---
+
+```{r setup, include=FALSE}
+# Load the dplyr package (part of tidyverse) to use bind_rows()
+library(dplyr)
+
+# 1. Read the first dataset (assuming files are in the working directory)
+part1 <- read.csv("ai_job_dataset.csv")
+
+# 2. Read the second dataset
+part2 <- read.csv("ai_job_dataset1.csv")
+
+# 3. Combine the two datasets vertically by stacking rows
+# bind_rows aligns columns by name and fills missing cells with NA
+combined_file <- bind_rows(part1, part2)
+
+# Display the first few rows of the combined dataset for verification
+head(combined_file)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(combined_file)
+colnames(combined_file)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+names_of_companies <- unique(combined_file$company_name)
+print(names_of_companies)
+### 30,000 lines and only 16 companies is weird 
+```
+
+```{r head, echo=FALSE}
+# 1. Calculate the counts for each unique company name
+company_counts <- combined_file %>%
+  # Group the data by the column you want to count (company_name)
+  group_by(company_name) %>%
+  # Summarize the group by counting the number of rows in each group
+  summarise(Count = n())
+
+# 2. Get the total number of lines (rows) in the combined dataset
+total_lines <- nrow(combined_file)
+
+# 3. Print the results clearly
+cat("--- Company Counts ---\n")
+print(company_counts)
+
+cat("\n--- Total Lines in Dataset ---\n")
+print(total_lines)
+### 3 of the 16 companies are not real and their names look fake although it shouldn't matter
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

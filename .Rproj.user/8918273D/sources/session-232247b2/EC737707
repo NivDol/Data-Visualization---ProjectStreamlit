@@ -1,0 +1,28 @@
+{
+    "id": "EC737707",
+    "path": "~/fifth_sem/visualization/ai_cleanup.Rmd",
+    "project_path": "ai_cleanup.Rmd",
+    "type": "r_markdown",
+    "hash": "0",
+    "contents": "",
+    "dirty": true,
+    "created": 1762261748966.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "tempName": "Untitled2",
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "40,25",
+        "scrollLine": "34",
+        "last_setup_crc32": "232247b275b7b593"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1762263190,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1762263714313,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -1,0 +1,7 @@
+"0","# Selects only the two columns and then keeps only the unique rows (pairings)"
+"0","unique_pairings <- combined_file %>%"
+"0","  select(company_name, company_size) %>%"
+"0","  distinct()"
+"0",""
+"0","# Print the resulting table"
+"0","print(unique_pairings)"

@@ -1,0 +1,25 @@
+------------------------------------------------------------------------
+
+```{r}
+# Load the dplyr package (part of tidyverse) to use bind_rows()
+library(dplyr)
+
+# 1. Read the first dataset (assuming files are in the working directory)
+part1 <- read.csv("ai_job_dataset.csv")
+
+# 2. Read the second dataset
+part2 <- read.csv("ai_job_dataset1.csv")
+
+# 3. Combine the two datasets vertically by stacking rows
+# bind_rows aligns columns by name and fills missing cells with NA
+combined_file <- bind_rows(part1, part2)
+
+# Display the first few rows of the combined dataset for verification
+head(combined_file)
+```
+
+```{}
+```
+
+```{}
+```
