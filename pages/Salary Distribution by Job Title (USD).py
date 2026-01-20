@@ -228,16 +228,36 @@ else:
         )
 
         fig2.update_traces(marker=dict(size=11))
-
         fig2.update_layout(
-            height=600,
-            legend_title_text="Experience Level",
-            xaxis_title="Median Salary (USD)",
-            yaxis_title="Country",
+            height=700,
+
+            # ===== X AXIS =====
             xaxis=dict(
-                tickformat="$,.0f" # Applied consistent formatting to bottom chart too
-            )
+                title="Median Salary (USD)",
+                tickformat="$,.0f",
+                title_font=dict(size=24),
+                tickfont=dict(size=18)
+            ),
+
+            # ===== Y AXIS =====
+            yaxis=dict(
+                title="Country",
+                title_font=dict(size=24),
+                tickfont=dict(size=18)
+            ),
+
+            # ===== LEGEND =====
+            legend=dict(
+                title_font=dict(size=20),
+                font=dict(size=18),
+                itemsizing="constant"
+            ),
+
+            # ===== MARGINS =====
+            margin=dict(l=140, r=40, t=40, b=60)
         )
+
+
 
         st.plotly_chart(fig2, use_container_width=True)
     else:
