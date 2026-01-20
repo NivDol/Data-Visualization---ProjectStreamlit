@@ -159,10 +159,11 @@ filtered_df["country"] = (
 )
 
 # =====================================================================
-# DOT PLOT – Median salary by country and experience level
+# DOT PLOT – Median salary by country and experience level (WITH SORT)
 # =====================================================================
 st.subheader("Median Salary by Country and Experience Level")
 
+# -------- Job selection --------
 selected_job = st.selectbox(
     "Select job title",
     sorted(filtered_df["job_title"].unique())
@@ -173,10 +174,9 @@ df_job = filtered_df[filtered_df["job_title"] == selected_job]
 if df_job.empty:
     st.warning("No data for this job title with current filters.")
 else:
-    # Order experience levels
+    # -------- Experience order --------
     experience_order = ["EN", "MI", "SE", "EX"]
 
-    # Ensure categorical consistency
     df_job = df_job.copy()
     df_job["experience_level"] = pd.Categorical(
         df_job["experience_level"],
@@ -184,7 +184,7 @@ else:
         ordered=True
     )
 
-    # Aggregate median salary
+    # -------- Aggregate median salary --------
     dot_df = (
         df_job
         .groupby(["country", "experience_level"])["salary_usd"]
@@ -192,10 +192,10 @@ else:
         .reset_index()
     )
 
-    # Count countries
+    # -------- Country count --------
     country_counts = dot_df["country"].value_counts()
 
-    # 🔹 Progressive disclosure: how many countries to show
+    # ================= UI CONTROLS =================
     st.sidebar.subheader("Country scope")
 
     if len(country_counts) > 0:
@@ -210,16 +210,36 @@ else:
             step=1
         )
 
+        # -------- Sorting control --------
+        sort_level = st.selectbox(
+            "Sort countries by salary of experience level",
+            ["EX", "SE", "MI", "EN"],
+            index=0
+        )
+
+        # -------- Filter top countries --------
         top_countries = country_counts.head(num_countries).index
         dot_df = dot_df[dot_df["country"].isin(top_countries)]
 
-        # Plot
+        # -------- Compute Y-axis order --------
+        sort_df = (
+            dot_df[dot_df["experience_level"] == sort_level]
+            .sort_values("salary_usd", ascending=False)
+        )
+
+        country_order = sort_df["country"].tolist()
+
+        # ================= PLOT =================
         fig2 = px.scatter(
             dot_df,
             x="salary_usd",
             y="country",
             color="experience_level",
-            color_discrete_map=experience_colors, # Use same color map
+            color_discrete_map=experience_colors,
+            category_orders={
+                "country": country_order,
+                "experience_level": experience_order
+            },
             labels={
                 "salary_usd": "Median Salary (USD)",
                 "country": "Country",
@@ -227,11 +247,13 @@ else:
             }
         )
 
-        fig2.update_traces(marker=dict(size=11))
+        # -------- Styling --------
+        fig2.update_traces(marker=dict(size=16))
+
         fig2.update_layout(
             height=700,
 
-            # ===== X AXIS =====
+            # X axis
             xaxis=dict(
                 title="Median Salary (USD)",
                 tickformat="$,.0f",
@@ -239,27 +261,29 @@ else:
                 tickfont=dict(size=18)
             ),
 
-            # ===== Y AXIS =====
+            # Y axis
             yaxis=dict(
                 title="Country",
                 title_font=dict(size=24),
                 tickfont=dict(size=18)
             ),
 
-            # ===== LEGEND =====
+            # Legend
             legend=dict(
                 title_font=dict(size=20),
                 font=dict(size=18),
                 itemsizing="constant"
             ),
 
-            # ===== MARGINS =====
             margin=dict(l=140, r=40, t=40, b=60)
         )
 
-
-
         st.plotly_chart(fig2, use_container_width=True)
+
+        st.caption(
+            f"Countries are sorted by median salary of {sort_level} level"
+        )
+
     else:
         st.info("Not enough data to display country stats for this role.")
 
