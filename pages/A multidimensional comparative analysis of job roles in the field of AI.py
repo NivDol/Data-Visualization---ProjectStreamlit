@@ -47,7 +47,7 @@ METRICS_CONFIG = {
     "Job Count": {"column": None, "agg": "size", "color": "#E377C2"},  # Pink
     "Years of Experience": {"column": "years_experience", "agg": "mean", "color": "#8172B2"}, # Purple
     "Benefits Score": {"column": "benefits_score", "agg": "mean", "color": "#8D6E63"},  # brown
-    "Remote Work Ratio (%)": {"column": "remote_ratio", "agg": "mean", "color": "#55A868"}  # Green
+    "Remote Work Ratio (%)": {"column": "remote_ratio", "agg": "mean", "color": "#D95F02" } # Orange
 }
 
 # Handle column name variations (consistency check)
