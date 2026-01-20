@@ -9,10 +9,10 @@ st.set_page_config(page_title="The AI Skill Wars", layout="wide")
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv('ai_job_dataset - all.csv')
+        df = pd.read_csv('database_ai_job_final.csv')
         return df
     except FileNotFoundError:
-        st.error("Data file not found. Please check 'ai_job_dataset - all.csv' exists.")
+        st.error("Data file not found. Please check 'database_ai_job_final.csv' exists.")
         return None
 
 
