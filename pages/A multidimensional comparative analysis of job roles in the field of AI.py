@@ -35,8 +35,6 @@ if df is None:
     st.error(f"File '{DATA_FILE}' not found. Please ensure the file is in the root directory.")
     st.stop()
 
-
-
 # ------------------------------------------------
 # 3. Metric Configuration
 # ------------------------------------------------
@@ -45,9 +43,9 @@ if df is None:
 METRICS_CONFIG = {
     "Average Salary (USD)": {"column": "salary_usd", "agg": "mean", "color": "#F1C40F"},  # Yellow
     "Job Count": {"column": None, "agg": "size", "color": "#E377C2"},  # Pink
-    "Years of Experience": {"column": "years_experience", "agg": "mean", "color": "#8172B2"}, # Purple
-    "Benefits Score": {"column": "benefits_score", "agg": "mean", "color": "#8D6E63"},  # brown
-    "Remote Work Ratio (%)": {"column": "remote_ratio", "agg": "mean", "color": "#D95F02" } # Orange
+    "Years of Experience": {"column": "years_experience", "agg": "mean", "color": "#8172B2"},  # Purple
+    "Benefits Score": {"column": "benefits_score", "agg": "mean", "color": "#8D6E63"},  # Brown
+    "Remote Work Ratio (%)": {"column": "remote_ratio", "agg": "mean", "color": "#D95F02"}  # Orange
 }
 
 # Handle column name variations (consistency check)
@@ -63,7 +61,7 @@ st.subheader("Select Metrics for Comparison")
 all_metrics = list(METRICS_CONFIG.keys())
 default_metrics = ["Average Salary (USD)", "Job Count"]
 
-# Create 6 columns for checkboxes to keep it compact
+# Create columns for checkboxes
 cols = st.columns(len(all_metrics))
 selected_metrics = []
 
@@ -81,12 +79,13 @@ if not selected_metrics:
 # ------------------------------------------------
 plot_data = []
 
+# Iterate through selected metrics to calculate and normalize values
 for metric in selected_metrics:
     config = METRICS_CONFIG[metric]
     col_name = config["column"]
     agg_func = config["agg"]
 
-    # 1. Aggregation
+    # 1. Aggregation based on configuration
     if agg_func == "size":
         temp_df = df.groupby("job_title").size().reset_index(name="raw_value")
     elif agg_func == "nunique":
@@ -107,7 +106,7 @@ for metric in selected_metrics:
     else:
         temp_df["normalized_value"] = (temp_df["raw_value"] - min_val) / (max_val - min_val)
 
-    # Apply epsilon so bars with value 0 are still hoverable
+    # Apply epsilon clip
     temp_df["normalized_value"] = temp_df["normalized_value"].clip(lower=epsilon)
 
     temp_df["metric"] = metric
@@ -116,8 +115,26 @@ for metric in selected_metrics:
 # Concatenate all prepared dataframes
 plot_df = pd.concat(plot_data, ignore_index=True)
 
-# Sort logic: Maintain a consistent order for the X-axis
-job_order = sorted(df["job_title"].unique())
+# --- Sort Settings ---
+st.subheader("Chart Sort Settings")
+
+# Add "Name (A-Z)" to the list of currently selected metrics
+sort_options = ["Name (A-Z)"] + selected_metrics
+sort_by = st.selectbox("Sort Chart By:", sort_options)
+
+# Determine the categorical order of the X-axis based on selection
+if sort_by == "Name (A-Z)":
+    # Default alphabetical sort
+    job_order = sorted(plot_df["job_title"].unique())
+else:
+    # Filter data for the selected metric to determine rank
+    sorter_df = plot_df[plot_df["metric"] == sort_by]
+
+    # Sort by normalized value (descending) to show highest bars first
+    sorter_df = sorter_df.sort_values(by="normalized_value", ascending=False)
+
+    # Extract the ordered list of job titles
+    job_order = sorter_df["job_title"].tolist()
 
 # ------------------------------------------------
 # 6. Plotting
@@ -128,23 +145,23 @@ fig = px.bar(
     y="normalized_value",
     color="metric",
     barmode="group",
+    # Apply the calculated sort order
     category_orders={"job_title": job_order},
-    # Map colors dynamically based on selection
+    # Map colors dynamically based on configuration
     color_discrete_map={m: METRICS_CONFIG[m]["color"] for m in selected_metrics},
-    # Pass raw_value explicitly to custom_data for the hover tooltip
+    # Pass raw values to custom_data for tooltips
     custom_data=["raw_value", "metric"],
-    title="Normalized Multidimensional Comparison"
+    title=f"Normalized Multidimensional Comparison (Sorted by: {sort_by})"
 )
 
 # Refine Hover Tooltip
-# %{customdata[0]} refers to the first item in the custom_data list (raw_value)
 fig.update_traces(
     hovertemplate="<br>".join([
         "<b>%{x}</b>",
         "Metric: %{customdata[1]}",
         "Raw Value: <b>%{customdata[0]:,.2f}</b>",
         "Normalized Score: %{y:.2f}",
-        "<extra></extra>"  # Removes the secondary box on the side
+        "<extra></extra>"
     ])
 )
 
@@ -153,17 +170,22 @@ fig.update_layout(
     height=600,
     plot_bgcolor="white",
     paper_bgcolor="white",
-    font=dict(color="#333"),
+    font=dict(family="Arial", size=14, color="#333"),
+    title=dict(font=dict(size=22)),
     xaxis=dict(
         title="Job Title",
         tickangle=-45,
-        linecolor="black"
+        linecolor="black",
+        title_font=dict(size=18),
+        tickfont=dict(size=16)
     ),
     yaxis=dict(
         title="Normalized Score (0=Low, 1=High)",
-        range=[0, 1.1],  # Give a little headroom for tooltips
+        range=[0, 1.1],
         gridcolor="#eee",
-        showgrid=True
+        showgrid=True,
+        title_font=dict(size=18),
+        tickfont=dict(size=16)
     ),
     legend=dict(
         orientation="h",
@@ -171,24 +193,69 @@ fig.update_layout(
         y=1.02,
         xanchor="right",
         x=1,
-        title=None
+        title=None,
+        font=dict(size=14)
     ),
-    margin=dict(t=80, b=100)  # Add margin for titles and rotated labels
+    margin=dict(t=100, b=120)
 )
 
 st.plotly_chart(fig, use_container_width=True)
 
 # ------------------------------------------------
-# 7. Detailed Data Table
+# 7. Detailed Data Table (Clean, High Visibility & Searchable)
 # ------------------------------------------------
 st.divider()
 st.subheader("📋 Underlying Data (Raw Values)")
 
-# Pivot table to show Job Titles as rows and Metrics as columns
+# 1. Prepare Base Data
 pivot_df = plot_df.pivot(index="job_title", columns="metric", values="raw_value")
 
-# Display with nice formatting
-st.dataframe(
-    pivot_df.style.format("{:,.2f}").background_gradient(cmap="Blues", axis=0),
-    use_container_width=True
-)
+# Clean up table structure
+pivot_df.columns.name = None          # Remove "metric" label from header
+pivot_df = pivot_df.reset_index()     # Flatten the table
+
+# --- Search Functionality ---
+# Text input for filtering
+search_query = st.text_input("🔍 Search by Job Title", placeholder="Type job name...")
+
+# Filter logic (Case-insensitive)
+if search_query:
+    pivot_df = pivot_df[pivot_df["job_title"].str.contains(search_query, case=False, na=False)]
+
+# --- Styling ---
+# Define numeric columns for specific formatting
+numeric_cols = pivot_df.columns.drop("job_title")
+
+# Create Styler object on the (potentially filtered) dataframe
+styler = pivot_df.style\
+    .format("{:,.2f}", subset=numeric_cols)\
+    .background_gradient(cmap="Blues", axis=0, subset=numeric_cols)\
+    .hide(axis="index")
+
+# Apply Custom CSS
+styler.set_table_styles([
+    # Header styling
+    {'selector': 'th', 'props': [
+        ('background-color', '#4e79a7'),
+        ('color', 'white'),
+        ('font-size', '20px'),
+        ('text-align', 'center'),
+        ('padding', '12px'),
+        ('border', '1px solid #ddd')
+    ]},
+    # Cell styling
+    {'selector': 'td', 'props': [
+        ('font-size', '18px'),
+        ('text-align', 'center'),
+        ('padding', '10px'),
+        ('border', '1px solid #ddd')
+    ]},
+    # Specific styling for the Job Title column
+    {'selector': 'td.col0', 'props': [
+        ('text-align', 'left'),
+        ('font-weight', 'bold')
+    ]}
+])
+
+# Render
+st.markdown(styler.to_html(), unsafe_allow_html=True)
