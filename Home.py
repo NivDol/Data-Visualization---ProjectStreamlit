@@ -80,8 +80,15 @@ def create_graphs(data, title_suffix, color_main):
         max_count = top_5['count'].max()
         fig1.update_yaxes(range=[min_count * 0.95, max_count * 1.05])
 
-    fig1.update_layout(height=350, margin=dict(t=40, b=0), paper_bgcolor="rgba(0,0,0,0)",
-                       plot_bgcolor="rgba(0,0,0,0)", title=f"Top Roles ({title_suffix})")
+    # UPDATED FONT SIZES HERE
+    fig1.update_layout(
+        height=350,
+        margin=dict(t=40, b=0),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        title=dict(text=f"Top Roles ({title_suffix})", font=dict(size=20)),  # Title Size 20
+        font=dict(size=16)  # Axis/Label Size 16
+    )
     graphs['top_roles'] = fig1
 
     # G2: In-State vs Out-of-State
@@ -111,10 +118,18 @@ def create_graphs(data, title_suffix, color_main):
         text='percentage', orientation='h', color_discrete_map=colors_bar
     )
     fig2.update_traces(texttemplate='%{text}%', textposition='outside')
+
+    # UPDATED FONT SIZES HERE
     fig2.update_layout(
-        height=350, margin=dict(t=40, b=20, l=0, r=0), paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)", title=chart_title, showlegend=False,
-        xaxis_title="Count", yaxis_title=None
+        height=350,
+        margin=dict(t=40, b=20, l=0, r=0),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        title=dict(text=chart_title, font=dict(size=20)),  # Title Size 20
+        showlegend=False,
+        xaxis_title="Count",
+        yaxis_title=None,
+        font=dict(size=16)  # Axis/Label Size 16
     )
     graphs['top_countries'] = fig2
     return graphs
@@ -189,13 +204,15 @@ def create_comparison_line_chart(df_left, name_left, color_left, df_right, name_
             dtick=clean_step  # Force our clean step size
         )
 
+    # UPDATED FONT SIZES HERE
     fig.update_layout(
         height=350,
         margin=dict(t=40, b=0),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         yaxis_tickformat='$,.0f',
-        title="💸 Salary Comparison",
+        title=dict(text="💸 Salary Comparison", font=dict(size=20)),  # Title Size 20
+        font=dict(size=16),  # Axis/Legend/Label Size 16
         legend=dict(
             orientation="h",
             yanchor="bottom",
