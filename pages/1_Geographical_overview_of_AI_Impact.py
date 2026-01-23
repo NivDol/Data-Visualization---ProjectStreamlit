@@ -65,17 +65,29 @@ def create_graphs(data, title_suffix, color_main):
     if data.empty: return graphs
 
     # G1: Top 5 Roles
-    top_5 = data['job_title'].value_counts().head(5).reset_index()
+    role_counts = data['job_title'].value_counts()
+    top_5 = role_counts.head(5).reset_index()
+
+    # Calculate the minimum value in the dataset to set as the y-axis floor
+    # We subtract a small buffer (e.g., 5%) so the smallest bar is still visible
+    min_val = role_counts.min()
+    max_val = top_5['count'].max()
+
     fig1 = px.bar(top_5, x='job_title', y='count')
     fig1.update_traces(marker_color=color_main)
     fig1.update_layout(
-        height=350, margin=dict(t=40, b=0), paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)", title=dict(text=f"Top Roles ({title_suffix})", font=dict(size=20)),
-        font=dict(size=16)
+        height=350,
+        margin=dict(t=40, b=0),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        title=dict(text=f"Top Roles ({title_suffix})", font=dict(size=20)),
+        font=dict(size=16),
+        # This line forces the y-axis to start at the lowest count found in 'data'
+        yaxis=dict(range=[min_val * 0.95, max_val * 1.05])
     )
     graphs['top_roles'] = fig1
 
-    # G2: In-State vs Out-of-State
+    # G2: In-State vs Out-of-State (Remaining code stays the same)
     loc_dist = data['is_same_location'].value_counts().reset_index()
     loc_dist.columns = ['is_same', 'count']
     total_count = loc_dist['count'].sum()
@@ -92,7 +104,6 @@ def create_graphs(data, title_suffix, color_main):
                        showlegend=False, font=dict(size=16))
     graphs['top_countries'] = fig2
     return graphs
-
 
 def create_comparison_line_chart(df_left, name_left, color_left, df_right, name_right, color_right):
     fig = go.Figure()
